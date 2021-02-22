@@ -1,5 +1,5 @@
 // Note: if you wanna change the size, also change grid_size in style.css.
-const SIZE = 5;
+const SIZE = 4;
 const EMPTY_TILE = SIZE * SIZE - 1;
 
 const DIRECTIONS = Object.freeze({

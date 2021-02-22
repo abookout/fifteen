@@ -1,7 +1,7 @@
 :root {
   --cell_width: 125px;
   --grid_background: rgb(83, 57, 35);
-  --grid_size: 5;
+  --grid_size: 4;
 }
 
 html {
