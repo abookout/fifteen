@@ -1,0 +1,58 @@
+:root {
+  --cell_width: 125px;
+  --grid_background: rgb(83, 57, 35);
+  --grid_size: 5;
+}
+
+html {
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Comic Sans MS", "Comic Sans";
+}
+
+body {
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  background-color: #fff;
+  width: 60vw;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  flex: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid_size), var(--cell_width));
+  gap: 8px;
+  background-color: var(--grid_background);
+  border: 5px solid rgb(54, 25, 5);
+  border-radius: 20px;
+  padding: 8px;
+}
+
+.cell {
+  width: var(--cell_width);
+  height: var(--cell_width);
+  border-radius: 8px;
+  font-size: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(228, 201, 140);
+}
+
+/* FIXME: Hardcoded 16 doesn't play nice with sizes other than 4 */
+.cell[data-tile-num="16"] {
+  background-color: var(--grid_background);
+}
+
+.timer {
+  text-align: center;
+}
