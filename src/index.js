@@ -1,4 +1,3 @@
-// Note: if you wanna change the size, also change grid_size in style.css.
 const SIZE = 4;
 const EMPTY_TILE = SIZE * SIZE - 1;
 
@@ -19,15 +18,17 @@ let playing = false;
 function createGrid() {
   const grid = document.getElementById("grid");
   for (let y = 0; y < SIZE; y++) {
+    let row = document.createElement("div");
+    row.className = "row";
     for (let x = 0; x < SIZE; x++) {
       const index = x + y * SIZE;
       const cell = document.createElement("div");
-      cell.className = "cell";
       setCellData(cell, index);
 
-      grid.appendChild(cell);
+      row.appendChild(cell);
       cells.push(cell);
     }
+    grid.appendChild(row);
   }
 }
 
@@ -43,7 +44,13 @@ function draw() {
 // Set cell's data according to the new tile value
 function setCellData(cell, value) {
   cell.dataset.tileNum = value + 1;
-  cell.innerHTML = value === SIZE * SIZE - 1 ? null : value + 1;
+  if (value === SIZE * SIZE - 1) {
+    cell.innerHTML = null;
+    cell.className = "cell empty";
+  } else {
+    cell.innerHTML = value + 1;
+    cell.className = "cell full";
+  }
 }
 
 // Swap two array elements in place, given their indices
