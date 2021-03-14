@@ -1,5 +1,5 @@
-const SIZE = 4;
-const EMPTY_TILE = SIZE * SIZE - 1;
+const DEFAULT_SIZE = 4;
+const TIMER_PRECISION = 2; // num. of displayed decimals
 
 const DIRECTIONS = Object.freeze({
   LEFT: "LEFT",
@@ -10,46 +10,53 @@ const DIRECTIONS = Object.freeze({
 
 // A cell is one of (ROWS*COLS) div elements, and a tile is the "value"
 //  (number) corresponding to one of those cells.
-const cells = [];
-const tiles = [...Array(SIZE * SIZE).keys()];
+let cells = [];
+// Numbers to show in each cell ordered left to right, top to bottom
+let tiles = [];
+let size = DEFAULT_SIZE;
+let empty_tile = size * size - 1;
 let playing = false;
 
-// Create dom elements, populating cells list. Intended to not be reordered.
+// Create dom elements, populating cells and tiles lists
 function createGrid() {
   const grid = document.getElementById("grid");
-  for (let y = 0; y < SIZE; y++) {
+
+  for (let y = 0; y < size; y++) {
     let row = document.createElement("div");
     row.className = "row";
-    for (let x = 0; x < SIZE; x++) {
-      const index = x + y * SIZE;
+    for (let x = 0; x < size; x++) {
       const cell = document.createElement("div");
-      setCellData(cell, index);
-
       row.appendChild(cell);
       cells.push(cell);
     }
     grid.appendChild(row);
   }
+  tiles = [...Array(size * size).keys()];
+}
+
+// Remove all child elements of the grid (rows and cells)
+function destroyGrid() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  cells.length = tiles.length = 0;
 }
 
 // Draw numbers according to their positions in the tiles array
 function draw() {
   console.assert(cells.length === tiles.length, cells, tiles);
 
+  // Set cell's data according to the new tile value
   for (let i = 0; i < cells.length; i++) {
-    setCellData(cells[i], tiles[i]);
-  }
-}
-
-// Set cell's data according to the new tile value
-function setCellData(cell, value) {
-  cell.dataset.tileNum = value + 1;
-  if (value === SIZE * SIZE - 1) {
-    cell.innerHTML = null;
-    cell.className = "cell empty";
-  } else {
-    cell.innerHTML = value + 1;
-    cell.className = "cell full";
+    let cell = cells[i],
+      value = tiles[i];
+    cell.dataset.tileNum = value + 1;
+    if (value === size * size - 1) {
+      cell.innerHTML = null;
+      cell.className = "cell empty";
+    } else {
+      cell.innerHTML = value + 1;
+      cell.className = "cell full";
+    }
   }
 }
 
@@ -60,7 +67,7 @@ function swap(arr, i, j) {
 
 // Check if the player has got the tiles in the right spots
 function checkBoard() {
-  const compare = [...Array(SIZE * SIZE).keys()];
+  const compare = [...Array(size * size).keys()];
   for (let i = 0; i < tiles.length; i++) {
     if (tiles[i] !== compare[i]) return false;
   }
@@ -94,14 +101,14 @@ function shuffle(tries) {
     for (let b = a + 1; b < tiles.length; b++) {
       const t_a = tiles[a];
       const t_b = tiles[b];
-      if (t_a === EMPTY_TILE || t_b === EMPTY_TILE) continue;
+      if (t_a === empty_tile || t_b === empty_tile) continue;
       if (t_a > t_b) num_inversions++;
     }
   }
   const inversions_even = num_inversions % 2 === 0;
 
-  if (SIZE % 2 !== 0) {
-    // SIZE odd: puzzle is solvable if inversions is even
+  if (size % 2 !== 0) {
+    // size odd: puzzle is solvable if inversions is even
     if (inversions_even) {
       // Solvable
       return;
@@ -111,12 +118,12 @@ function shuffle(tries) {
       return;
     }
   } else {
-    // SIZE even:
+    // size even:
     //  inversions odd: solvable if the blank is on an even row from the bottom
     //  inversions even: solvable if the blank is on an odd row from the bottom
     //  Otherwise, puzzle is not solvable.
-    const empty_index = tiles.indexOf(SIZE * SIZE - 1);
-    const empty_row_from_bottom = SIZE - Math.floor(empty_index / SIZE);
+    const empty_index = tiles.indexOf(size * size - 1);
+    const empty_row_from_bottom = size - Math.floor(empty_index / size);
 
     const blank_on_even = empty_row_from_bottom % 2 === 0;
     if (
@@ -133,26 +140,27 @@ function shuffle(tries) {
 }
 
 function move(direction) {
-  const empty_index = tiles.indexOf(EMPTY_TILE);
+  const empty_index = tiles.indexOf(empty_tile);
   console.assert(empty_index !== -1);
 
-  let tile_index; // Tile to move
+  // Tile to move into empty spot
+  let tile_index;
   switch (direction) {
     case DIRECTIONS.LEFT:
-      if (empty_index % SIZE === SIZE - 1) return;
+      if (empty_index % size === size - 1) return;
       tile_index = empty_index + 1;
       break;
     case DIRECTIONS.RIGHT:
-      if (empty_index % SIZE === 0) return;
+      if (empty_index % size === 0) return;
       tile_index = empty_index - 1;
       break;
     case DIRECTIONS.UP:
-      if (empty_index >= SIZE * (SIZE - 1)) return;
-      tile_index = empty_index + SIZE;
+      if (empty_index >= size * (size - 1)) return;
+      tile_index = empty_index + size;
       break;
     case DIRECTIONS.DOWN:
-      if (empty_index < SIZE) return;
-      tile_index = empty_index - SIZE;
+      if (empty_index < size) return;
+      tile_index = empty_index - size;
       break;
   }
 
@@ -175,14 +183,27 @@ function startTimer() {
   initial_time = Date.now();
 
   timer_interval = setInterval(() => {
-    timer_element.innerHTML = ((Date.now() - initial_time) / 1000).toFixed(1);
-  }, 50);
+    timer_element.innerHTML = ((Date.now() - initial_time) / 1000).toFixed(
+      TIMER_PRECISION
+    );
+  }, 20);
 }
 
-function win() {
-  playing = false;
+function stopTimer() {
   clearInterval(timer_interval);
-  setInfoText("Nice! Press space to play again!");
+}
+
+function init(init_size = DEFAULT_SIZE) {
+  size = init_size;
+  empty_tile = size * size - 1;
+  playing = false;
+  timer_element.innerHTML = Number(0).toFixed(TIMER_PRECISION);
+
+  destroyGrid();
+  stopTimer();
+  createGrid();
+  draw();
+  setInfoText("0-9 to resize or spacebar to start");
 }
 
 function reset() {
@@ -193,33 +214,62 @@ function reset() {
   playing = true;
 }
 
+function win() {
+  playing = false;
+  stopTimer();
+  setInfoText("Nice! Press space to play again!");
+}
+
+function setGridSize(new_size) {
+  init(new_size);
+  resizeCells();
+}
+
+function resizeCells() {
+  let tmp;
+  switch (size) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+      tmp = "125px";
+      break;
+    case 6:
+      tmp = "105px";
+      break;
+    case 7:
+      tmp = "95px";
+      break;
+    case 8:
+      tmp = "85px";
+      break;
+    case 9:
+      tmp = "75px";
+      break;
+  }
+  document.querySelector(":root").style.setProperty("--cell_width", tmp);
+}
+
 function setInfoText(text) {
   document.getElementById("info").innerHTML = text;
 }
 
 document.onkeydown = (e) => {
-  if (!playing && e.key !== " ") return;
+  const keynum = Number(e.key);
+  if (!playing) {
+    if (e.key !== " " && isNaN(keynum)) return;
+  }
 
-  switch (e.key) {
-    case " ":
-      reset();
-      break;
-    case "ArrowLeft":
-      move(DIRECTIONS.LEFT);
-      break;
-    case "ArrowRight":
-      move(DIRECTIONS.RIGHT);
-      break;
-    case "ArrowUp":
-      move(DIRECTIONS.UP);
-      break;
-    case "ArrowDown":
-      move(DIRECTIONS.DOWN);
-      break;
+  if (e.key === " ") reset();
+  else if (e.key === "ArrowLeft") move(DIRECTIONS.LEFT);
+  else if (e.key === "ArrowRight") move(DIRECTIONS.RIGHT);
+  else if (e.key === "ArrowUp") move(DIRECTIONS.UP);
+  else if (e.key === "ArrowDown") move(DIRECTIONS.DOWN);
+  else if (!isNaN(keynum) && 0 <= keynum < 10) {
+    setGridSize(keynum);
   }
 };
 
-window.onload = () => {
-  createGrid();
-  setInfoText("Spacebar to start");
-};
+window.onload = () => init();
