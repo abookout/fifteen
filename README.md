@@ -1,3 +1,7 @@
+---
+permalink: /index.html
+---
+
 # fifteen
 A simple, minimalistic 15-puzzle with support for other puzzle sizes!
 
