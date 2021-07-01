@@ -2,6 +2,8 @@
 permalink: /index.html
 ---
 
+# [Link to play online - hosted on my github page](https://adambookout.github.io/fifteen/)
+
 # fifteen
 A simple, minimalistic 15-puzzle with support for other puzzle sizes!
 
