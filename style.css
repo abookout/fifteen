@@ -1,5 +1,6 @@
 :root {
   --grid_background: rgb(83, 57, 35);
+  --grid_border: rgb(54, 25, 5);
   --cell_background: rgb(228, 201, 140);
 
   /* grid width and height (number of cells) */
@@ -16,14 +17,19 @@ body {
   justify-content: center;
 }
 
-.container {
-  background-color: #fff;
+.hcenter {
   width: 60vw;
   height: 95vh;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
   flex: none;
+}
+
+.vcenter {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -32,7 +38,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--grid_background);
-  border: 5px solid rgb(54, 25, 5);
+  border: 5px solid var(--grid_border);
   border-radius: 20px;
   padding: 8px;
 }
@@ -49,7 +55,7 @@ body {
   height: calc(50vmin / var(--grid_size));
   border-radius: 8px;
   margin: 4px;
-  font-size: calc(15vmin / var(--grid_size));
+  font-size: calc(15vmin / var(--grid_size)); /*TODO: make universal?*/
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,4 +71,30 @@ body {
 
 .timer {
   text-align: center;
+}
+
+.size-select {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.size-select-btn {
+  border-radius: 15px;
+  background: var(--cell_background);
+  box-shadow: 5px 5px var(--grid_background);
+  width: 5vmin;
+  height: 5vmin;
+  margin: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected {
+  translate: 5px 5px;
+  box-shadow: none;
+  color: #fff;
+  background: var(--grid_background);
 }

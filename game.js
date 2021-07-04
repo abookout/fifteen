@@ -1,5 +1,5 @@
 const DEFAULT_SIZE = 4;
-const TIMER_PRECISION = 3;    // num. of displayed decimals
+const TIMER_PRECISION = 3;    // num. of displayed decimals for timer
 const SHUFFLE_RETRIES = 10;   // how many times to try shuffling until we give up
 
 const DIRECTIONS = Object.freeze({
@@ -18,6 +18,9 @@ let size = DEFAULT_SIZE;
 let empty_tile = size * size - 1;
 let playing = false;
 
+// Store size select buttons to update style when one is selected
+let size_select_btns = [];
+
 // Create dom elements, populating cells and tiles lists
 function createGrid() {
   const grid = document.getElementById("grid");
@@ -27,6 +30,7 @@ function createGrid() {
     row.className = "row";
     for (let x = 0; x < size; x++) {
       const cell = document.createElement("div");
+      cell.onmousedown = () => clickMove(x + y * size);
       row.appendChild(cell);
       cells.push(cell);
     }
@@ -140,7 +144,8 @@ function shuffle(tries) {
   }
 }
 
-function move(direction) {
+// Attempt to move a tile into the empty spot in the given direction
+function keyMove(direction) {
   const empty_index = tiles.indexOf(empty_tile);
   console.assert(empty_index !== -1);
 
@@ -176,6 +181,32 @@ function move(direction) {
   }
 }
 
+// Attempt to move the tile at tile_index into the empty spot
+function clickMove(tile_index) {
+  console.log("clickMove", tile_index)
+  const empty_index = tiles.indexOf(empty_tile);
+  console.assert(empty_index !== -1);
+
+  // Check that the clicked tile and empty tile are adjacent
+  if (empty_index !== tile_index - 1
+    && empty_index !== tile_index + 1
+    && empty_index !== tile_index + size
+    && empty_index !== tile_index - size) {
+    console.log("bad: ", empty_index, tile_index)
+    return;
+  }
+
+  swap(tiles, tile_index, empty_index);
+  draw();
+
+  if (checkBoard()) {
+    // Player wins!
+    win();
+  }
+}
+
+// Timer functions
+
 const timer_element = document.getElementById("timer");
 let initial_time, timer_interval;
 
@@ -193,6 +224,8 @@ function startTimer() {
 function stopTimer() {
   clearInterval(timer_interval);
 }
+
+// Game flow functions
 
 function init(init_size = DEFAULT_SIZE) {
   size = init_size;
@@ -231,7 +264,7 @@ function setInfoText(text) {
   document.getElementById("info").innerHTML = text;
 }
 
-document.onkeydown = (e) => {
+function onKeyDown(e) {
   const keynum = Number(e.key);
   if (!playing) {
     // The only keys that are relevant are the arrows and numbers. 
@@ -239,14 +272,45 @@ document.onkeydown = (e) => {
   }
 
   if (e.key === " ") reset();
-  else if (e.key === "ArrowLeft") move(DIRECTIONS.LEFT);
-  else if (e.key === "ArrowRight") move(DIRECTIONS.RIGHT);
-  else if (e.key === "ArrowUp") move(DIRECTIONS.UP);
-  else if (e.key === "ArrowDown") move(DIRECTIONS.DOWN);
+  else if (e.key === "ArrowLeft") keyMove(DIRECTIONS.LEFT);
+  else if (e.key === "ArrowRight") keyMove(DIRECTIONS.RIGHT);
+  else if (e.key === "ArrowUp") keyMove(DIRECTIONS.UP);
+  else if (e.key === "ArrowDown") keyMove(DIRECTIONS.DOWN);
   else if (!isNaN(keynum) && 0 <= keynum < 10) {
     init(keynum);
     setGridSize(keynum);
   }
-};
+}
 
-window.onload = () => init();
+function onSizeSelectClick(tile) {
+  init(tile);
+  setGridSize(tile);
+  for (let btn of size_select_btns) {
+    if (btn.innerHTML === String(tile)) {
+      btn.className = "size-select-btn selected";
+    } else {
+      btn.className = "size-select-btn";
+    }
+  }
+}
+
+function onLoad() {
+  // Create size select button elements
+  const size_select = document.getElementById("size-select");
+  // Hardcoded 10 for allowing sizes 0-9
+  for (let i = 0; i < 10; i++) {
+    let btn = document.createElement("div");
+    btn.className = "size-select-btn" + (i === size ? " selected" : "");
+    btn.innerHTML = i;
+    btn.onclick = () => onSizeSelectClick(i);
+
+    size_select.appendChild(btn);
+    size_select_btns.push(btn);
+  }
+
+  // Initialize board
+  init();
+}
+
+document.onkeydown = onKeyDown;
+window.onload = onLoad;
