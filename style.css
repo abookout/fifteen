@@ -1,7 +1,9 @@
 :root {
-  --cell_width: 125px;
   --grid_background: rgb(83, 57, 35);
   --cell_background: rgb(228, 201, 140);
+
+  /* grid width and height (number of cells) */
+  --grid_size: 4;
 }
 
 html {
@@ -40,12 +42,14 @@ body {
   flex-direction: row;
 }
 
+/* Includes some magic numbers that just makes the sizing good for any
+ * (desktop) screen size. */
 .cell {
-  width: var(--cell_width);
-  height: var(--cell_width);
+  width: calc(50vmin / var(--grid_size));
+  height: calc(50vmin / var(--grid_size));
   border-radius: 8px;
   margin: 4px;
-  font-size: 3rem;
+  font-size: calc(15vmin / var(--grid_size));
   display: flex;
   align-items: center;
   justify-content: center;

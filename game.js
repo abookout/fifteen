@@ -1,5 +1,6 @@
 const DEFAULT_SIZE = 4;
-const TIMER_PRECISION = 2; // num. of displayed decimals
+const TIMER_PRECISION = 3;    // num. of displayed decimals
+const SHUFFLE_RETRIES = 10;   // how many times to try shuffling until we give up
 
 const DIRECTIONS = Object.freeze({
   LEFT: "LEFT",
@@ -206,9 +207,10 @@ function init(init_size = DEFAULT_SIZE) {
   setInfoText("0-9 to resize or spacebar to start");
 }
 
+// Begin the game; clear info text, shuffle the board, and start the timer. 
 function reset() {
   setInfoText(" ");
-  shuffle(10);
+  shuffle(SHUFFLE_RETRIES);
   draw();
   startTimer();
   playing = true;
@@ -221,35 +223,8 @@ function win() {
 }
 
 function setGridSize(new_size) {
-  init(new_size);
-  resizeCells();
-}
-
-function resizeCells() {
-  let tmp;
-  switch (size) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-      tmp = "125px";
-      break;
-    case 6:
-      tmp = "105px";
-      break;
-    case 7:
-      tmp = "95px";
-      break;
-    case 8:
-      tmp = "85px";
-      break;
-    case 9:
-      tmp = "75px";
-      break;
-  }
-  document.querySelector(":root").style.setProperty("--cell_width", tmp);
+  // Resize all cells
+  document.querySelector(":root").style.setProperty("--grid_size", new_size);
 }
 
 function setInfoText(text) {
@@ -259,6 +234,7 @@ function setInfoText(text) {
 document.onkeydown = (e) => {
   const keynum = Number(e.key);
   if (!playing) {
+    // The only keys that are relevant are the arrows and numbers. 
     if (e.key !== " " && isNaN(keynum)) return;
   }
 
@@ -268,6 +244,7 @@ document.onkeydown = (e) => {
   else if (e.key === "ArrowUp") move(DIRECTIONS.UP);
   else if (e.key === "ArrowDown") move(DIRECTIONS.DOWN);
   else if (!isNaN(keynum) && 0 <= keynum < 10) {
+    init(keynum);
     setGridSize(keynum);
   }
 };
