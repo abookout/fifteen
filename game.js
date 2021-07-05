@@ -9,6 +9,12 @@ const DIRECTIONS = Object.freeze({
   DOWN: "DOWN",
 });
 
+const BACKGROUND_COLORS = Object.freeze({
+  WHITE: "#fff",
+  GREEN: "#EBF3CB",
+  RED: "#F3D2CB",
+})
+
 // A cell is one of (ROWS*COLS) div elements, and a tile is the "value"
 //  (number) corresponding to one of those cells.
 let cells = [];
@@ -30,7 +36,10 @@ function createGrid() {
     row.className = "row";
     for (let x = 0; x < size; x++) {
       const cell = document.createElement("div");
-      cell.onmousedown = () => clickMove(x + y * size);
+      cell.onmousedown = cell.ontouchstart = (e) => {
+        e.preventDefault();
+        clickMove(x + y * size);
+      }
       row.appendChild(cell);
       cells.push(cell);
     }
@@ -86,6 +95,7 @@ function shuffle(tries) {
   if (tries === 0) {
     // The current board is unsolvable lol
     setInfoText("Have fun solving this one ;)");
+    setBackgroundColor(BACKGROUND_COLORS.RED);
     return;
   }
 
@@ -183,7 +193,7 @@ function keyMove(direction) {
 
 // Attempt to move the tile at tile_index into the empty spot
 function clickMove(tile_index) {
-  console.log("clickMove", tile_index)
+  if (!playing) return;
   const empty_index = tiles.indexOf(empty_tile);
   console.assert(empty_index !== -1);
 
@@ -192,7 +202,6 @@ function clickMove(tile_index) {
     && empty_index !== tile_index + 1
     && empty_index !== tile_index + size
     && empty_index !== tile_index - size) {
-    console.log("bad: ", empty_index, tile_index)
     return;
   }
 
@@ -233,15 +242,16 @@ function init(init_size = DEFAULT_SIZE) {
   playing = false;
   timer_element.innerHTML = Number(0).toFixed(TIMER_PRECISION);
 
+  setBackgroundColor(BACKGROUND_COLORS.WHITE);
   destroyGrid();
   stopTimer();
   createGrid();
   draw();
-  setInfoText("0-9 to resize or spacebar to start");
 }
 
 // Begin the game; clear info text, shuffle the board, and start the timer. 
 function reset() {
+  setBackgroundColor(BACKGROUND_COLORS.WHITE);
   setInfoText(" ");
   shuffle(SHUFFLE_RETRIES);
   draw();
@@ -252,7 +262,7 @@ function reset() {
 function win() {
   playing = false;
   stopTimer();
-  setInfoText("Nice! Press space to play again!");
+  setBackgroundColor(BACKGROUND_COLORS.GREEN);
 }
 
 function setGridSize(new_size) {
@@ -262,6 +272,10 @@ function setGridSize(new_size) {
 
 function setInfoText(text) {
   document.getElementById("info").innerHTML = text;
+}
+
+function setBackgroundColor(color) {
+  document.body.style.background = color;
 }
 
 function onKeyDown(e) {
@@ -277,12 +291,11 @@ function onKeyDown(e) {
   else if (e.key === "ArrowUp") keyMove(DIRECTIONS.UP);
   else if (e.key === "ArrowDown") keyMove(DIRECTIONS.DOWN);
   else if (!isNaN(keynum) && 0 <= keynum < 10) {
-    init(keynum);
-    setGridSize(keynum);
+    onSizeSelected(keynum);
   }
 }
 
-function onSizeSelectClick(tile) {
+function onSizeSelected(tile) {
   init(tile);
   setGridSize(tile);
   for (let btn of size_select_btns) {
@@ -295,6 +308,8 @@ function onSizeSelectClick(tile) {
 }
 
 function onLoad() {
+  document.getElementById("start-btn").onclick = reset;
+
   // Create size select button elements
   const size_select = document.getElementById("size-select");
   // Hardcoded 10 for allowing sizes 0-9
@@ -302,7 +317,7 @@ function onLoad() {
     let btn = document.createElement("div");
     btn.className = "size-select-btn" + (i === size ? " selected" : "");
     btn.innerHTML = i;
-    btn.onclick = () => onSizeSelectClick(i);
+    btn.onclick = () => onSizeSelected(i);
 
     size_select.appendChild(btn);
     size_select_btns.push(btn);

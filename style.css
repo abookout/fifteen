@@ -81,17 +81,27 @@ body {
 }
 
 .size-select-btn {
-  border-radius: 15px;
-  background: var(--cell_background);
-  box-shadow: 5px 5px var(--grid_background);
   width: 5vmin;
   height: 5vmin;
   margin: 6px;
+}
+
+.start-btn {
+  width: 20vmin;
+  height: 6vmin;
+}
+
+.size-select-btn,
+.start-btn {
+  background: var(--cell_background);
+  box-shadow: 5px 5px var(--grid_background);
+  border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.start-btn:active,
 .selected {
   translate: 5px 5px;
   box-shadow: none;
