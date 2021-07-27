@@ -80,15 +80,39 @@ body {
   margin-top: 10px;
 }
 
-.size-select-btn,
-.start-btn {
+.toggle, 
+.btn {
   background: var(--cell_background);
   box-shadow: 5px 5px var(--grid_background);
-  border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+.btn {
+  border-radius: 15px;
+}
+
+.toggle {
+  border-radius: 10px;
+}
+
+.toggle:before {
+  content: "\2717";
+}
+
+.selected.toggle:before {
+  content: "\2713";
+}
+
+.btn:active,
+.selected {
+  translate: 5px 5px;
+  box-shadow: none;
+  color: #fff;
+  background: var(--grid_background);
+}
+
 
 .size-select-btn {
   width: 5vmin;
@@ -99,19 +123,31 @@ body {
 .start-btn {
   width: 20vmin;
   height: 6vmin;
+  margin-right: 50px;
 }
 
-.start-btn:active,
-.selected {
-  translate: 5px 5px;
-  box-shadow: none;
-  color: #fff;
-  background: var(--grid_background);
+.start-marathon-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.marathon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.marathon-btn {
+  /* text-align: center; */
+  width: 3.5vmin;
+  height: 3.5vmin;
+  margin-left: 5px;
 }
 
 /* Mobile styles */
 
-@media (max-width: 700px){
+@media screen and (max-width: 700px){
   .hcenter {
     width: 100%;
   }
@@ -128,6 +164,11 @@ body {
   }
 
   .start-btn {
+    width: 40vmin;
+    height: 12vmin;
+  }
+
+  .marathon-btn {
     width: 40vmin;
     height: 12vmin;
   }

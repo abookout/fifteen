@@ -1,6 +1,7 @@
 const DEFAULT_SIZE = 4;
 const TIMER_PRECISION = 3;    // num. of displayed decimals for timer
-const SHUFFLE_RETRIES = 10;   // how many times to try shuffling until we give up
+const SHUFFLE_RETRIES = 15;   // how many times to try shuffling until we give up
+const MARATHON_GAMES = 10;    // how many games in a marathon
 
 const DIRECTIONS = Object.freeze({
   LEFT: "LEFT",
@@ -23,6 +24,9 @@ let tiles = [];
 let size = DEFAULT_SIZE;
 let empty_tile = size * size - 1;
 let playing = false;
+
+let marathon_enabled = false;
+let marathon_counter = MARATHON_GAMES;
 
 // Store size select buttons to update style when one is selected
 let size_select_btns = [];
@@ -224,18 +228,26 @@ function startTimer() {
   initial_time = Date.now();
 
   timer_interval = setInterval(() => {
-    timer_element.innerHTML = ((Date.now() - initial_time) / 1000).toFixed(
+    let time = ((Date.now() - initial_time) / 1000).toFixed(
       TIMER_PRECISION
     );
+    timer_element.innerHTML = time + "s";
   }, 20);
 }
 
 function stopTimer() {
   clearInterval(timer_interval);
+  let time = parseFloat(timer_element.innerHTML);
+  if (time > 60) {
+    // convert seconds to minutes and seconds
+    timer_element.innerHTML += ` (${Math.floor(time / 60)
+      }m ${(time % 60).toFixed(TIMER_PRECISION)}s)`
+  }
 }
 
 // Game flow functions
 
+// Re-create the grid
 function init(init_size = DEFAULT_SIZE) {
   size = init_size;
   empty_tile = size * size - 1;
@@ -250,7 +262,8 @@ function init(init_size = DEFAULT_SIZE) {
 }
 
 // Begin the game; clear info text, shuffle the board, and start the timer. 
-function reset() {
+function start() {
+  marathon_counter = MARATHON_GAMES;
   setBackgroundColor(BACKGROUND_COLORS.WHITE);
   setInfoText(" ");
   shuffle(SHUFFLE_RETRIES);
@@ -259,7 +272,22 @@ function reset() {
   playing = true;
 }
 
+// Begin another game in a marathon; shuffle but don't reset the timer
+function resetMarathon() {
+  setBackgroundColor(BACKGROUND_COLORS.WHITE);
+  setInfoText(" ");
+  shuffle(SHUFFLE_RETRIES);
+  draw();
+}
+
 function win() {
+  if (marathon_enabled) {
+    marathon_counter -= 1;
+    if (marathon_counter > 0) {
+      resetMarathon();
+      return;
+    }
+  }
   playing = false;
   stopTimer();
   setBackgroundColor(BACKGROUND_COLORS.GREEN);
@@ -280,12 +308,14 @@ function setBackgroundColor(color) {
 
 function onKeyDown(e) {
   const keynum = Number(e.key);
+  if (e.key === "m") toggleMarathon();
+
   if (!playing) {
-    // The only keys that are relevant are the arrows and numbers. 
+    // The only relevant keys before a game are the spacebar, M, and numbers. 
     if (e.key !== " " && isNaN(keynum)) return;
   }
 
-  if (e.key === " ") reset();
+  if (e.key === " ") start();
   else if (e.key === "ArrowLeft") keyMove(DIRECTIONS.LEFT);
   else if (e.key === "ArrowRight") keyMove(DIRECTIONS.RIGHT);
   else if (e.key === "ArrowUp") keyMove(DIRECTIONS.UP);
@@ -295,27 +325,36 @@ function onKeyDown(e) {
   }
 }
 
+function toggleMarathon() {
+  // Can't toggle marathon in the middle of a game.
+  if (playing) return;
+  marathon_enabled = !marathon_enabled;
+  document.getElementById("marathon-btn").className =
+    `toggle marathon-btn ${marathon_enabled ? "selected" : ""}`
+}
+
 function onSizeSelected(tile) {
   init(tile);
   setGridSize(tile);
   for (let btn of size_select_btns) {
     if (btn.innerHTML === String(tile)) {
-      btn.className = "size-select-btn selected";
+      btn.className = "btn size-select-btn selected";
     } else {
-      btn.className = "size-select-btn";
+      btn.className = "btn size-select-btn";
     }
   }
 }
 
 function onLoad() {
-  document.getElementById("start-btn").onclick = reset;
+  document.getElementById("start-btn").onclick = start;
+  document.getElementById("marathon-btn").onclick = toggleMarathon;
 
   // Create size select button elements
   const size_select = document.getElementById("size-select");
   // Hardcoded 10 for allowing sizes 0-9
   for (let i = 0; i < 10; i++) {
     let btn = document.createElement("div");
-    btn.className = "size-select-btn" + (i === size ? " selected" : "");
+    btn.className = "btn size-select-btn" + (i === size ? " selected" : "");
     btn.innerHTML = i;
     btn.onclick = () => onSizeSelected(i);
 
