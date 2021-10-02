@@ -1,7 +1,7 @@
 const DEFAULT_SIZE = 4;
-const TIMER_PRECISION = 3;    // num. of displayed decimals for timer
-const SHUFFLE_RETRIES = 15;   // how many times to try shuffling until we give up
-const MARATHON_GAMES = 10;    // how many games in a marathon
+const TIMER_PRECISION = 3; // num. of displayed decimals for timer
+const SHUFFLE_RETRIES = 15; // how many times to try shuffling until we give up
+const MARATHON_GAMES = 10; // how many games in a marathon
 
 const DIRECTIONS = Object.freeze({
   LEFT: "LEFT",
@@ -11,10 +11,10 @@ const DIRECTIONS = Object.freeze({
 });
 
 const BACKGROUND_COLORS = Object.freeze({
-  WHITE: "#fff",
-  GREEN: "#EBF3CB",
-  RED: "#F3D2CB",
-})
+  DEFAULT: "--background_default",
+  SUCCESS: "--background_success",
+  FAIL: "--background_fail",
+});
 
 // A cell is one of (ROWS*COLS) div elements, and a tile is the "value"
 //  (number) corresponding to one of those cells.
@@ -43,7 +43,7 @@ function createGrid() {
       cell.onmousedown = cell.ontouchstart = (e) => {
         e.preventDefault();
         clickMove(x + y * size);
-      }
+      };
       row.appendChild(cell);
       cells.push(cell);
     }
@@ -99,7 +99,7 @@ function shuffle(tries) {
   if (tries === 0) {
     // The current board is unsolvable lol
     setInfoText("Have fun solving this one ;)");
-    setBackgroundColor(BACKGROUND_COLORS.RED);
+    setBackgroundColor(BACKGROUND_COLORS.FAIL);
     return;
   }
 
@@ -202,10 +202,12 @@ function clickMove(tile_index) {
   console.assert(empty_index !== -1);
 
   // Check that the clicked tile and empty tile are adjacent
-  if (empty_index !== tile_index - 1
-    && empty_index !== tile_index + 1
-    && empty_index !== tile_index + size
-    && empty_index !== tile_index - size) {
+  if (
+    empty_index !== tile_index - 1 &&
+    empty_index !== tile_index + 1 &&
+    empty_index !== tile_index + size &&
+    empty_index !== tile_index - size
+  ) {
     return;
   }
 
@@ -228,9 +230,7 @@ function startTimer() {
   initial_time = Date.now();
 
   timer_interval = setInterval(() => {
-    let time = ((Date.now() - initial_time) / 1000).toFixed(
-      TIMER_PRECISION
-    );
+    let time = ((Date.now() - initial_time) / 1000).toFixed(TIMER_PRECISION);
     timer_element.innerHTML = time + "s";
   }, 20);
 }
@@ -240,8 +240,9 @@ function stopTimer() {
   let time = parseFloat(timer_element.innerHTML);
   if (time > 60) {
     // convert seconds to minutes and seconds
-    timer_element.innerHTML += ` (${Math.floor(time / 60)
-      }m ${(time % 60).toFixed(TIMER_PRECISION)}s)`
+    timer_element.innerHTML += ` (${Math.floor(time / 60)}m ${(
+      time % 60
+    ).toFixed(TIMER_PRECISION)}s)`;
   }
 }
 
@@ -254,17 +255,17 @@ function init(init_size = DEFAULT_SIZE) {
   playing = false;
   timer_element.innerHTML = Number(0).toFixed(TIMER_PRECISION);
 
-  setBackgroundColor(BACKGROUND_COLORS.WHITE);
+  setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
   destroyGrid();
   stopTimer();
   createGrid();
   draw();
 }
 
-// Begin the game; clear info text, shuffle the board, and start the timer. 
+// Begin the game; clear info text, shuffle the board, and start the timer.
 function start() {
   marathon_counter = MARATHON_GAMES;
-  setBackgroundColor(BACKGROUND_COLORS.WHITE);
+  setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
   setInfoText(" ");
   shuffle(SHUFFLE_RETRIES);
   draw();
@@ -274,7 +275,7 @@ function start() {
 
 // Begin another game in a marathon; shuffle but don't reset the timer
 function resetMarathon() {
-  setBackgroundColor(BACKGROUND_COLORS.WHITE);
+  setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
   setInfoText(" ");
   shuffle(SHUFFLE_RETRIES);
   draw();
@@ -290,7 +291,7 @@ function win() {
   }
   playing = false;
   stopTimer();
-  setBackgroundColor(BACKGROUND_COLORS.GREEN);
+  setBackgroundColor(BACKGROUND_COLORS.SUCCESS);
 }
 
 function setGridSize(new_size) {
@@ -303,7 +304,9 @@ function setInfoText(text) {
 }
 
 function setBackgroundColor(color) {
-  document.body.style.background = color;
+  const body = document.querySelector("body");
+  const targetColor = getComputedStyle(body).getPropertyValue(color);
+  body.style.setProperty("--background", targetColor);
 }
 
 function onKeyDown(e) {
@@ -311,7 +314,7 @@ function onKeyDown(e) {
   if (e.key === "m") toggleMarathon();
 
   if (!playing) {
-    // The only relevant keys before a game are the spacebar, M, and numbers. 
+    // The only relevant keys before a game are the spacebar, M, and numbers.
     if (e.key !== " " && isNaN(keynum)) return;
   }
 
@@ -329,8 +332,9 @@ function toggleMarathon() {
   // Can't toggle marathon in the middle of a game.
   if (playing) return;
   marathon_enabled = !marathon_enabled;
-  document.getElementById("marathon-btn").className =
-    `toggle marathon-btn ${marathon_enabled ? "selected" : ""}`
+  document.getElementById("marathon-btn").className = `toggle marathon-btn ${
+    marathon_enabled ? "selected" : ""
+  }`;
 }
 
 function onSizeSelected(tile) {

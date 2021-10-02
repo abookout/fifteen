@@ -1,10 +1,8 @@
 :root,
 :root.dark-theme {
-  --grid_background: rgb(83, 57, 35);
-  --grid_border: rgb(54, 25, 5);
-  --cell_background: rgb(228, 201, 140);
+  color-scheme: light dark;
 
-  /* grid width and height (number of cells) */
+  /* grid width and height (number of cells) - changed in js as required */
   --grid_size: 4;
 }
 
@@ -14,8 +12,41 @@ html {
 }
 
 body {
+  /* light mode colors */
+  --background_default: #fff;
+  --background_success: #ebf3cb;
+  --background_fail: #f3d2cb;
+  --grid_background: rgb(83, 57, 35);
+  --grid_border: rgb(54, 25, 5);
+  --cell_background: rgb(228, 201, 140);
+  --text_color: #000;
+
+  /* disable text selection (for mobile) */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
   display: flex;
   justify-content: center;
+  color: var(--text_color);
+  background-color: var(--background);
+  --background: var(--background_default); /* var set by js */
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  body {
+    /* dark mode colors */
+    --background_default: rgb(43, 40, 76);
+    --background_success: rgb(35, 66, 58);
+    --background_fail: #472c2c;
+    --grid_background: rgb(81, 89, 120);
+    --grid_border: rgb(57, 54, 85);
+    --cell_background: rgb(146, 142, 175);
+    --text_color: #fff;
+  }
 }
 
 .hcenter {
