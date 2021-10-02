@@ -87,7 +87,7 @@ body {
   height: calc(50vmin / var(--grid_size));
   border-radius: 8px;
   margin: 4px;
-  font-size: calc(15vmin / var(--grid_size)); /*TODO: make universal?*/
+  font-size: calc(15vmin / var(--grid_size));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,7 +175,7 @@ body {
     width: calc(80vmin / var(--grid_size));
     height: calc(80vmin / var(--grid_size));
     margin: 2px;
-    font-size: calc(25vmin / var(--grid_size));
+    font-size: calc(30vmin / var(--grid_size));
   }
 
   .size-select {
