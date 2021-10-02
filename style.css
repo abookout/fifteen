@@ -112,21 +112,13 @@ body {
   margin-top: 10px;
 }
 
-.toggle,
 .btn {
   background: var(--cell_background);
   box-shadow: 5px 5px var(--grid_background);
+  border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.btn {
-  border-radius: 15px;
-}
-
-.toggle {
-  border-radius: 10px;
 }
 
 .btn:active,

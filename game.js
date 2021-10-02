@@ -332,7 +332,7 @@ function toggleMarathon() {
   // Can't toggle marathon in the middle of a game.
   if (playing) return;
   marathon_enabled = !marathon_enabled;
-  document.getElementById("marathon-btn").className = `toggle marathon-btn ${
+  document.getElementById("marathon-btn").className = `btn marathon-btn ${
     marathon_enabled ? "selected" : ""
   }`;
 }
