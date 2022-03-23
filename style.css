@@ -82,6 +82,9 @@ body {
   background-color: var(--grid_border);
   border-radius: 20px;
   padding: 8px;
+  box-shadow: 6px 6px 0 2px, inset 0 0 2px 1px var(--grid_border),
+    inset 2px 2px 3px -2px white;
+  outline: 2px solid;
 }
 
 .row {
@@ -115,11 +118,13 @@ body {
   margin-bottom: 4px;
 }
 
-.full {
+.cell.full {
   background: var(--cell_background);
+  box-shadow: inset 3px 3px 4px -2px white,
+    inset -2px -2px 5px -2px var(--grid_background);
 }
 
-.empty {
+.cell.empty {
   background: var(--grid_background);
 }
 
@@ -136,7 +141,8 @@ body {
 
 .btn {
   background: var(--cell_background);
-  box-shadow: 5px 5px var(--grid_background);
+  box-shadow: 5px 5px var(--grid_background), inset 0 0 0 1px var(--grid_border);
+  /* box-shadow: 3px 3px var(--grid_background), inset 0 0 0 1px var(--grid_border), inset 2px 2px 5px -2px white, inset -2px -2px 5px -2px black; */
   border-radius: 5px;
   display: flex;
   align-items: center;
@@ -145,7 +151,7 @@ body {
 
 .btn:active,
 .selected {
-  translate: 5px 5px;
+  translate: 3px 3px;
   box-shadow: none;
   color: #fff;
   background: var(--grid_background);

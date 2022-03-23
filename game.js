@@ -338,6 +338,7 @@ function toggleMarathon() {
 }
 
 function onSizeSelected(tile) {
+  setInfoText(" ");
   init(tile);
   setGridSize(tile);
   for (let btn of size_select_btns) {
