@@ -14,9 +14,10 @@ html {
 body {
   /* light mode colors */
   --background_default: #fff;
-  --background_success: #ebf3cb;
-  --background_fail: #f3d2cb;
-  --grid_background: rgb(83, 57, 35);
+  --background_success: #61ff699f;
+  --background_fail: #ff69619d;
+  --grid_border: rgb(83, 57, 35);
+  --grid_background: rgb(20, 14, 9);
   --cell_background: rgb(228, 201, 140);
   --text_color: #000;
 
@@ -37,9 +38,9 @@ body {
   overflow-x: hidden;
 }
 
-@media screen and (prefers-color-scheme: dark) {
+/* dark mode colors */
+/* @media screen and (prefers-color-scheme: dark) {
   body {
-    /* dark mode colors */
     --background_default: rgb(43, 40, 76);
     --background_success: rgb(35, 66, 58);
     --background_fail: #472c2c;
@@ -48,7 +49,7 @@ body {
     --cell_background: rgb(146, 142, 175);
     --text_color: #fff;
   }
-}
+} */
 
 .hcenter {
   width: 60vw;
@@ -71,7 +72,14 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--grid_background);
-  border: 10px solid var(--grid_background);
+  /* border-radius: 10px; */
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: 0 0 4px 0px var(--grid_background);
+}
+
+.grid-outer {
+  background-color: var(--grid_border);
   border-radius: 20px;
   padding: 8px;
 }
@@ -87,11 +95,24 @@ body {
   width: calc(50vmin / var(--grid_size));
   height: calc(50vmin / var(--grid_size));
   border-radius: 8px;
-  margin: 4px;
+  margin: 0;
   font-size: min(40pt, calc(15vmin / var(--grid_size)));
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.cell:not(:first-child) {
+  margin-left: 4px;
+}
+.cell:not(:last-child) {
+  margin-right: 4px;
+}
+.row:not(:first-child) {
+  margin-top: 4px;
+}
+.row:not(:last-child) {
+  margin-bottom: 4px;
 }
 
 .full {
@@ -116,7 +137,7 @@ body {
 .btn {
   background: var(--cell_background);
   box-shadow: 5px 5px var(--grid_background);
-  border-radius: 15px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,7 +187,7 @@ body {
   .cell {
     width: calc(80vmin / var(--grid_size));
     height: calc(80vmin / var(--grid_size));
-    margin: 2px;
+    /* margin: 2px; */
     font-size: calc(25vmin / var(--grid_size));
   }
 
