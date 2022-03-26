@@ -1,6 +1,6 @@
 const DEFAULT_SIZE = 4;
 const TIMER_PRECISION = 3; // num. of displayed decimals for timer
-const SHUFFLE_RETRIES = 15; // how many times to try shuffling until we give up
+const SHUFFLE_RETRIES = 30; // how many times to try shuffling until we give up
 const MARATHON_GAMES = 10; // how many games in a marathon
 
 const DIRECTIONS = Object.freeze({
@@ -16,6 +16,16 @@ const BACKGROUND_COLORS = Object.freeze({
   FAIL: "--background_fail",
 });
 
+/*
+TODO: 
+ - Slide whole row with click
+ - Leaderboard 
+ - Marathon:
+    - show avg time per game
+    - show number of current game for viewing progress
+    - make it so marathon is not on by accident
+ */
+
 // A cell is one of (ROWS*COLS) div elements, and a tile is the "value"
 //  (number) corresponding to one of those cells.
 let cells = [];
@@ -24,6 +34,9 @@ let tiles = [];
 let size = DEFAULT_SIZE;
 let empty_tile = size * size - 1;
 let playing = false;
+
+// If true, the current board state is unsolvable. Could happen very rarely.
+let unsolvable = false;
 
 let marathon_enabled = false;
 let marathon_counter = MARATHON_GAMES;
@@ -100,6 +113,7 @@ function shuffle(tries) {
     // The current board is unsolvable lol
     setInfoText("Have fun solving this one ;)");
     setBackgroundColor(BACKGROUND_COLORS.FAIL);
+    unsolvable = true;
     return;
   }
 
@@ -150,6 +164,7 @@ function shuffle(tries) {
       (inversions_even && !blank_on_even)
     ) {
       // Solvable
+      unsolvable = false;
       return;
     }
     // Not solvable
@@ -278,6 +293,11 @@ function resetMarathon() {
   setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
   setInfoText(" ");
   shuffle(SHUFFLE_RETRIES);
+  if (!unsolvable) {
+    // Only flash green if solvable, else background color needs to stay red
+    // (set in shuffle)
+    flashGreen();
+  }
   draw();
 }
 
@@ -307,6 +327,19 @@ function setBackgroundColor(color) {
   const body = document.querySelector("body");
   const targetColor = getComputedStyle(body).getPropertyValue(color);
   body.style.setProperty("--background", targetColor);
+}
+
+async function flashGreen() {
+  // After a win in the middle of a marathon game, flash background green to
+  // show the player they won a game
+  const body = document.querySelector("body");
+  if (body.classList.contains("flash-green")) {
+    body.classList.remove("flash-green");
+    body.classList.add("flash-green1");
+  } else {
+    body.classList.remove("flash-green1");
+    body.classList.add("flash-green");
+  }
 }
 
 function onKeyDown(e) {

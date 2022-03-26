@@ -182,9 +182,38 @@ body {
   margin-top: 15px;
 }
 
+/* Animations */
+
+/* Fade from green to white (after mid-marathon win) */
+.flash-green {
+  animation-name: flash-green;
+  animation-duration: 2s;
+}
+@keyframes flash-green {
+  from {
+    background-color: var(--background_success);
+  }
+  to {
+    background-color: var(--background_default);
+  }
+}
+/* Identical animation as above; need to toggle between them to restart the animation */
+.flash-green1 {
+  animation-name: flash-green1;
+  animation-duration: 2s;
+}
+@keyframes flash-green1 {
+  from {
+    background-color: var(--background_success);
+  }
+  to {
+    background-color: var(--background_default);
+  }
+}
+
 /* Mobile styles */
 
-@media screen and (max-width: 660px) {
+@media screen and (max-width: 550px) {
   .hcenter {
     width: 100%;
   }
