@@ -452,11 +452,6 @@ function onLoad() {
 
   // Initialize board
   init();
-
-  // Default info text only shows on page load
-  setInfoText(
-    "Begin by pressing start, or press any number to change the board size"
-  );
 }
 
 document.onkeydown = onKeyDown;
