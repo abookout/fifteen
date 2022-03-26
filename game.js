@@ -18,7 +18,6 @@ const BACKGROUND_COLORS = Object.freeze({
 
 /*
 TODO: 
- - Slide whole row with click
  - Leaderboard 
  - Marathon:
     - show avg time per game
@@ -55,7 +54,7 @@ function createGrid() {
       const cell = document.createElement("div");
       cell.onmousedown = cell.ontouchstart = (e) => {
         e.preventDefault();
-        clickMove(x + y * size);
+        clickMove(x, y);
       };
       row.appendChild(cell);
       cells.push(cell);
@@ -92,8 +91,20 @@ function draw() {
 }
 
 // Swap two array elements in place, given their indices
-function swap(arr, i, j) {
+function swapByIndex(arr, i, j) {
   [arr[i], arr[j]] = [arr[j], arr[i]];
+}
+
+/**
+ * Helper function to convert x-y positions to array indices
+ * @param {Array} arr
+ * @param {*} i_x x-index of first element
+ * @param {*} i_y y-index of first element
+ * @param {*} j_x x-index of second element
+ * @param {*} j_y y-index of second element
+ */
+function swapByPosition(arr, i_x, i_y, j_x, j_y) {
+  swapByIndex(arr, i_x + i_y * size, j_x + j_y * size);
 }
 
 // Check if the player has got the tiles in the right spots
@@ -120,7 +131,7 @@ function shuffle(tries) {
   //https://stackoverflow.com/a/12646864
   for (let i = tiles.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    swap(tiles, i, j);
+    swapByIndex(tiles, i, j);
   }
 
   if (checkBoard()) {
@@ -201,7 +212,7 @@ function keyMove(direction) {
 
   console.assert(tile_index !== undefined, tile_index);
 
-  swap(tiles, tile_index, empty_index);
+  swapByIndex(tiles, tile_index, empty_index);
   draw();
 
   if (checkBoard()) {
@@ -210,23 +221,36 @@ function keyMove(direction) {
   }
 }
 
-// Attempt to move the tile at tile_index into the empty spot
-function clickMove(tile_index) {
+// A tile was clicked. If it's on the same row or column as the empty tile,
+// slide the tiles so that the new empty tile's spot is at the clicked spot
+function clickMove(clicked_x, clicked_y) {
   if (!playing) return;
   const empty_index = tiles.indexOf(empty_tile);
   console.assert(empty_index !== -1);
 
-  // Check that the clicked tile and empty tile are adjacent
-  if (
-    empty_index !== tile_index - 1 &&
-    empty_index !== tile_index + 1 &&
-    empty_index !== tile_index + size &&
-    empty_index !== tile_index - size
-  ) {
-    return;
-  }
+  const empty_x = empty_index % size;
+  const empty_y = Math.floor(empty_index / size);
 
-  swap(tiles, tile_index, empty_index);
+  // Check that the clicked tile and empty tile are on the same row/col
+  if (clicked_x === empty_x && clicked_y === empty_y) return;
+  else if (clicked_x === empty_x) {
+    // Same col. Start at empty and keep swapping to clicked
+    let y = empty_y;
+    let increment = clicked_y > empty_y ? 1 : -1;
+    while (y !== clicked_y) {
+      swapByPosition(tiles, empty_x, y, empty_x, y + increment);
+      y += increment;
+    }
+  } else if (clicked_y === empty_y) {
+    // Same row. Start at empty and keep swapping to clicked
+    let x = empty_x;
+    let increment = clicked_x > empty_x ? 1 : -1;
+    while (x !== clicked_x) {
+      swapByPosition(tiles, x, empty_y, x + increment, empty_y);
+      x += increment;
+    }
+  } else return;
+
   draw();
 
   if (checkBoard()) {
