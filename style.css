@@ -19,6 +19,8 @@ body {
   --grid_border: rgb(83, 57, 35);
   --grid_background: rgb(20, 14, 9);
   --cell_background: rgb(228, 201, 140);
+  --disabled_background: #ede1c4;
+  --disabled: grey;
   --text_color: #000;
 
   /* disable text selection (for mobile) */
@@ -64,8 +66,15 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
+}
+
+.info {
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 20px 0;
 }
 
 .grid {
@@ -83,7 +92,8 @@ body {
   border-radius: 20px;
   padding: 8px;
   box-shadow: 0 0 0 3px var(--grid_background), 5px 5px 0 2px,
-    inset 0 0 2px 1px var(--grid_border), inset 2px 2px 3px -2px white;
+    inset 0 0 2px 1px var(--grid_border), inset 2px 2px 3px -2px white,
+    2px 2px 40px 20px white;
 }
 
 .row {
@@ -148,7 +158,17 @@ body {
   justify-content: center;
 }
 
-.btn:active,
+.btn-disabled {
+  background-color: var(--disabled_background);
+  box-shadow: 3px 3px var(--disabled), inset 0 0 0 1px var(--disabled);
+  color: var(--disabled);
+}
+
+.btn-disabled.selected {
+  background-color: var(--disabled);
+}
+
+.btn:active:not(.btn-disabled),
 .selected {
   translate: 3px 3px;
   box-shadow: none;
@@ -179,7 +199,6 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-top: 15px;
 }
 
 /* Animations */
@@ -213,7 +232,7 @@ body {
 
 /* Mobile styles */
 
-@media screen and (max-width: 550px) {
+@media screen and (max-width: 600px) {
   .hcenter {
     width: 100%;
   }

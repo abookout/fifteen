@@ -19,10 +19,6 @@ const BACKGROUND_COLORS = Object.freeze({
 /*
 TODO: 
  - Leaderboard 
- - Marathon:
-    - show avg time per game
-    - show number of current game for viewing progress
-    - make it so marathon is not on by accident
  */
 
 // A cell is one of (ROWS*COLS) div elements, and a tile is the "value"
@@ -262,27 +258,29 @@ function clickMove(clicked_x, clicked_y) {
 // Timer functions
 
 const timer_element = document.getElementById("timer");
-let initial_time, timer_interval;
+let initial_time, current_time, timer_interval;
 
 function startTimer() {
   if (timer_interval) clearInterval(timer_interval);
   initial_time = Date.now();
 
   timer_interval = setInterval(() => {
-    let time = ((Date.now() - initial_time) / 1000).toFixed(TIMER_PRECISION);
-    timer_element.innerHTML = time + "s";
+    current_time = (Date.now() - initial_time) / 1000;
+    timer_element.innerHTML = current_time.toFixed(TIMER_PRECISION) + "s";
   }, 20);
 }
 
 function stopTimer() {
   clearInterval(timer_interval);
-  let time = parseFloat(timer_element.innerHTML);
-  if (time > 60) {
+  if (current_time > 60) {
     // convert seconds to minutes and seconds
-    timer_element.innerHTML += ` (${Math.floor(time / 60)}m ${(
-      time % 60
-    ).toFixed(TIMER_PRECISION)}s)`;
+    timer_element.innerHTML += ` (${formatMinSecTime(current_time)})`;
   }
+}
+
+// Convert a float time to minutes and seconds, e.g. 64.15333333 gives "1m 4.333s"
+function formatMinSecTime(time) {
+  return `${Math.floor(time / 60)}m ${(time % 60).toFixed(TIMER_PRECISION)}s`;
 }
 
 // Game flow functions
@@ -292,6 +290,7 @@ function init(init_size = DEFAULT_SIZE) {
   size = init_size;
   empty_tile = size * size - 1;
   playing = false;
+  updateMarathonBtnStyle();
   timer_element.innerHTML = Number(0).toFixed(TIMER_PRECISION);
 
   setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
@@ -305,17 +304,21 @@ function init(init_size = DEFAULT_SIZE) {
 function start() {
   marathon_counter = MARATHON_GAMES;
   setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
-  setInfoText(" ");
+  if (marathon_enabled) {
+    setInfoText(`Games remaining: ${marathon_counter}`);
+  } else {
+    setInfoText(" ");
+  }
   shuffle(SHUFFLE_RETRIES);
   draw();
   startTimer();
   playing = true;
+  updateMarathonBtnStyle();
 }
 
 // Begin another game in a marathon; shuffle but don't reset the timer
 function resetMarathon() {
-  setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
-  setInfoText(" ");
+  setInfoText(`Games remaining: ${marathon_counter}`);
   shuffle(SHUFFLE_RETRIES);
   if (!unsolvable) {
     // Only flash green if solvable, else background color needs to stay red
@@ -336,6 +339,15 @@ function win() {
   playing = false;
   stopTimer();
   setBackgroundColor(BACKGROUND_COLORS.SUCCESS);
+  updateMarathonBtnStyle();
+  if (marathon_enabled && marathon_counter === 0) {
+    let avg_time = current_time / MARATHON_GAMES;
+    setInfoText(
+      `Marathon done! Average time per game: ${avg_time.toFixed(
+        TIMER_PRECISION
+      )}s ` + (avg_time > 60 ? `(${formatMinSecTime(avg_time)})` : "")
+    );
+  }
 }
 
 function setGridSize(new_size) {
@@ -351,6 +363,19 @@ function setBackgroundColor(color) {
   const body = document.querySelector("body");
   const targetColor = getComputedStyle(body).getPropertyValue(color);
   body.style.setProperty("--background", targetColor);
+  // Prevent last win of a marathon flashing green
+  body.classList.remove("flash-green", "flash-green1");
+}
+
+function updateMarathonBtnStyle() {
+  const btn = document.getElementById("marathon-btn");
+  btn.className = `btn marathon-btn ${marathon_enabled ? "selected" : ""} ${
+    playing ? "btn-disabled" : ""
+  }`;
+
+  btn.innerHTML = marathon_enabled
+    ? "Disable Marathon (m)"
+    : "Enable Marathon (m)";
 }
 
 async function flashGreen() {
@@ -389,9 +414,10 @@ function toggleMarathon() {
   // Can't toggle marathon in the middle of a game.
   if (playing) return;
   marathon_enabled = !marathon_enabled;
-  document.getElementById("marathon-btn").className = `btn marathon-btn ${
-    marathon_enabled ? "selected" : ""
-  }`;
+  if (marathon_enabled) {
+    setInfoText(`Marathon mode: play ${MARATHON_GAMES} games in a row`);
+  } else setInfoText(" ");
+  updateMarathonBtnStyle();
 }
 
 function onSizeSelected(tile) {
@@ -426,6 +452,11 @@ function onLoad() {
 
   // Initialize board
   init();
+
+  // Default info text only shows on page load
+  setInfoText(
+    "Begin by pressing start, or press any number to change the board size"
+  );
 }
 
 document.onkeydown = onKeyDown;
