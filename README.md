@@ -31,7 +31,7 @@ their original spots.
 
 ---
 
-<img src="./screenshots/Screenshot3.png" width="40%">
+![](./screenshots/Screenshot3.png)
 
 ---
 
