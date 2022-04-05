@@ -240,13 +240,11 @@ body {
   .cell {
     width: calc(80vmin / var(--grid_size));
     height: calc(80vmin / var(--grid_size));
-    /* margin: 2px; */
     font-size: calc(25vmin / var(--grid_size));
   }
 
   .btn {
     font-size: 3.5vmin;
-    padding: 0 4px;
   }
 
   .size-select {
@@ -262,10 +260,5 @@ body {
   .marathon-btn {
     width: 30vmin;
     height: 12vmin;
-  }
-
-  .start-marathon-container {
-    flex-direction: row;
-    align-items: center;
   }
 }
