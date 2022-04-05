@@ -245,7 +245,8 @@ body {
   }
 
   .btn {
-    font-size: 3vmin;
+    font-size: 3.5vmin;
+    padding: 0 4px;
   }
 
   .size-select {
