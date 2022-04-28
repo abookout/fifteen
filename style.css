@@ -12,6 +12,7 @@ html {
 }
 
 body {
+  font-family: "Nunito", sans-serif;
   /* light mode colors */
   --background_default: #fff;
   --background_success: #61ff699f;
@@ -31,13 +32,12 @@ body {
   -ms-user-select: none;
   user-select: none;
 
-  display: flex;
-  justify-content: center;
   color: var(--text_color);
   background-color: var(--background);
   --background: var(--background_default); /* var set by js */
 
-  overflow-x: hidden;
+  overflow: hidden;
+  margin: 0;
 }
 
 /* dark mode colors */
@@ -54,12 +54,10 @@ body {
 } */
 
 .hcenter {
-  width: 60vw;
-  height: 95vh;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  flex: none;
+  width: 100vw;
+  height: 100vh;
+  margin-inline: auto;
+  overflow: hidden;
 }
 
 .vcenter {
@@ -104,11 +102,11 @@ body {
 /* Includes some magic numbers that just makes the sizing good for any
  * (desktop) screen size. */
 .cell {
-  width: calc(50vmin / var(--grid_size));
-  height: calc(50vmin / var(--grid_size));
+  width: calc(30rem / var(--grid_size));
+  height: calc(30rem / var(--grid_size));
   border-radius: 8px;
   margin: 0;
-  font-size: min(40pt, calc(15vmin / var(--grid_size)));
+  font-size: min(40pt, calc(8.5rem / var(--grid_size)));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,20 +175,16 @@ body {
 }
 
 .size-select-btn {
-  width: 5vmin;
-  height: 5vmin;
+  width: 3rem;
+  height: 3rem;
   margin: 6px;
   font-size: 2vmin;
 }
 
-.start-btn {
-  margin-right: 4vmin;
-}
-
 .start-btn,
 .marathon-btn {
-  width: 26vmin;
-  height: 6.5vmin;
+  width: 14rem;
+  height: 4rem;
   text-align: center;
   font-size: 2vmin;
 }
@@ -199,6 +193,8 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 /* Animations */
@@ -252,13 +248,13 @@ body {
   }
 
   .size-select-btn {
-    width: 10vmin;
-    height: 10vmin;
+    width: 3rem;
+    height: 3rem;
   }
 
   .start-btn,
   .marathon-btn {
-    width: 30vmin;
-    height: 12vmin;
+    width: 10rem;
+    height: 4rem;
   }
 }
