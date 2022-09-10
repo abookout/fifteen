@@ -3,6 +3,10 @@ const TIMER_PRECISION = 3; // num. of displayed decimals for timer
 const SHUFFLE_RETRIES = 30; // how many times to try shuffling until we give up
 const MARATHON_GAMES = 10; // how many games in a marathon
 
+// Grid widths for small screens (mobile) and large screens (non-mobile)
+const GRID_WIDTH_SM = 300;
+const GRID_WIDTH_LG = 500;
+
 const DIRECTIONS = Object.freeze({
   LEFT: "LEFT",
   RIGHT: "RIGHT",
@@ -21,14 +25,20 @@ TODO:
  - Leaderboard 
  */
 
-// A cell is one of (ROWS*COLS) div elements, and a tile is the "value"
-//  (number) corresponding to one of those cells.
-let cells = [];
-// Numbers to show in each cell ordered left to right, top to bottom
+// A tile is one of (size*size) div elements, and a tile is the "value"
+//  (number) corresponding to one of those tiles.
 let tiles = [];
+// Numbers to show in each tile ordered left to right, top to bottom. The tile
+// with value (size*size) is in this array but doesn't exist as a tile; it's
+// the empty tile
+let tile_values = [];
 let size = DEFAULT_SIZE;
-let empty_tile = size * size - 1;
+let empty_tile = size * size;
 let playing = false;
+
+// px width/height of entire grid
+let grid_width = GRID_WIDTH_LG;
+let cell_margin = 10;
 
 // If true, the current board state is unsolvable. Could happen very rarely.
 let unsolvable = false;
@@ -39,50 +49,112 @@ let marathon_counter = MARATHON_GAMES;
 // Store size select buttons to update style when one is selected
 let size_select_btns = [];
 
-// Create dom elements, populating cells and tiles lists
+// Creates an array of sorted tile values corresponding to the current grid size
+function createSolvedValuesArray() {
+  return Array.from({ length: size * size }).map((_, i) => i + 1);
+}
+
+// Create dom elements, populating background cells, tiles, and tile values
 function createGrid() {
   const grid = document.getElementById("grid");
+  const tile_container = document.getElementById("tile-container");
+  tile_values = createSolvedValuesArray();
+
+  const cell_width = calculateCellWidth();
+  setCellWidth(cell_width);
 
   for (let y = 0; y < size; y++) {
     let row = document.createElement("div");
     row.className = "row";
     for (let x = 0; x < size; x++) {
+      const i = x + size * y;
+
+      // Create cells that sit behind the tiles, essentially setting the grid size
       const cell = document.createElement("div");
+      cell.className = "cell";
+
       cell.onmousedown = cell.ontouchstart = (e) => {
         e.preventDefault();
         clickMove(x, y);
       };
       row.appendChild(cell);
-      cells.push(cell);
+
+      // Create tiles (except for the empty slot)
+      if (i !== empty_tile - 1) {
+        const tile = document.createElement("div");
+        tiles.push(tile);
+        tile.className = "tile";
+        tile.innerHTML = tile_values[i];
+        setTileTransform(tile, cell_width, x, y);
+
+        tile_container.appendChild(tile);
+      }
     }
     grid.appendChild(row);
   }
-  tiles = [...Array(size * size).keys()];
 }
 
 // Remove all child elements of the grid (rows and cells)
 function destroyGrid() {
   const grid = document.getElementById("grid");
+  const tile_container = document.getElementById("tile-container");
   grid.innerHTML = "";
-  cells.length = tiles.length = 0;
+  tile_container.innerHTML = "";
+  tiles.length = tile_values.length = 0;
 }
 
-// Draw numbers according to their positions in the tiles array
-function draw() {
-  console.assert(cells.length === tiles.length, cells, tiles);
+function setTileTransform(tile, cell_width, new_x, new_y) {
+  tile.style.transform = `translate(${new_x * (cell_width + cell_margin)}px, ${
+    new_y * (cell_width + cell_margin)
+  }px)`;
+}
 
-  // Set cell's data according to the new tile value
-  for (let i = 0; i < cells.length; i++) {
-    let cell = cells[i],
-      value = tiles[i];
-    cell.dataset.tileNum = value + 1;
-    if (value === size * size - 1) {
-      cell.innerHTML = null;
-      cell.className = "cell empty";
-    } else {
-      cell.innerHTML = value + 1;
-      cell.className = "cell full";
-    }
+// Updates both the tile's index in tile_values, and its visual position
+function moveTile(tile_index, new_index, new_x, new_y) {
+  const tile = tiles[tile_values[tile_index] - 1];
+
+  // Update value array
+  swapByIndex(tile_values, tile_index, new_index);
+
+  // Update transform of tile
+  const cell_width = calculateCellWidth();
+  setTileTransform(tile, cell_width, new_x, new_y);
+}
+
+function moveTileByIndex(tile_index, new_index) {
+  return moveTile(
+    tile_index,
+    new_index,
+    new_index % size,
+    Math.floor(new_index / size)
+  );
+}
+
+function moveTileByPos(old_x, old_y, new_x, new_y) {
+  return moveTile(old_x + old_y * size, new_x, new_y);
+}
+
+// Calculate the width of a single cell using the following formula solved for
+// cell_width:
+//            grid_width = (cell_width * size) + (cell_margin * (size - 1))
+function calculateCellWidth() {
+  return (grid_width - cell_margin * (size - 1)) / size;
+}
+
+// Move all tiles according to their positions in the tileValues array
+function draw() {
+  if (tile_values.length === 0) return;
+
+  console.assert(tiles.length + 1 === tile_values.length, tiles, tile_values);
+  const cell_width = calculateCellWidth();
+  for (let i = 0; i < tile_values.length; i++) {
+    const value = tile_values[i];
+    if (value === empty_tile) continue;
+    const tile = tiles[value - 1];
+    const new_x = i % size;
+    const new_y = Math.floor(i / size);
+
+    setTileTransform(tile, cell_width, new_x, new_y);
   }
 }
 
@@ -105,9 +177,9 @@ function swapByPosition(arr, i_x, i_y, j_x, j_y) {
 
 // Check if the player has got the tiles in the right spots
 function checkBoard() {
-  const compare = [...Array(size * size).keys()];
-  for (let i = 0; i < tiles.length; i++) {
-    if (tiles[i] !== compare[i]) return false;
+  const compare = createSolvedValuesArray();
+  for (let i = 0; i < tile_values.length; i++) {
+    if (tile_values[i] !== compare[i]) return false;
   }
 
   return true;
@@ -125,9 +197,9 @@ function shuffle(tries) {
   }
 
   //https://stackoverflow.com/a/12646864
-  for (let i = tiles.length - 1; i > 0; i--) {
+  for (let i = tile_values.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    swapByIndex(tiles, i, j);
+    swapByIndex(tile_values, i, j);
   }
 
   if (checkBoard()) {
@@ -137,10 +209,10 @@ function shuffle(tries) {
 
   //https://www.geeksforgeeks.org/check-instance-15-puzzle-solvable/
   let num_inversions = 0;
-  for (let a = 0; a < tiles.length - 1; a++) {
-    for (let b = a + 1; b < tiles.length; b++) {
-      const t_a = tiles[a];
-      const t_b = tiles[b];
+  for (let a = 0; a < tile_values.length - 1; a++) {
+    for (let b = a + 1; b < tile_values.length; b++) {
+      const t_a = tile_values[a];
+      const t_b = tile_values[b];
       if (t_a === empty_tile || t_b === empty_tile) continue;
       if (t_a > t_b) num_inversions++;
     }
@@ -162,7 +234,7 @@ function shuffle(tries) {
     //  inversions odd: solvable if the blank is on an even row from the bottom
     //  inversions even: solvable if the blank is on an odd row from the bottom
     //  Otherwise, puzzle is not solvable.
-    const empty_index = tiles.indexOf(size * size - 1);
+    const empty_index = tile_values.indexOf(empty_tile);
     const empty_row_from_bottom = size - Math.floor(empty_index / size);
 
     const blank_on_even = empty_row_from_bottom % 2 === 0;
@@ -182,9 +254,8 @@ function shuffle(tries) {
 
 // Attempt to move a tile into the empty spot in the given direction
 function keyMove(direction) {
-  const empty_index = tiles.indexOf(empty_tile);
+  const empty_index = tile_values.indexOf(empty_tile);
   console.assert(empty_index !== -1);
-
   // Tile to move into empty spot
   let tile_index;
   switch (direction) {
@@ -208,8 +279,8 @@ function keyMove(direction) {
 
   console.assert(tile_index !== undefined, tile_index);
 
-  swapByIndex(tiles, tile_index, empty_index);
-  draw();
+  // This move handles drawing, no need to call draw() here
+  moveTileByIndex(tile_index, empty_index);
 
   if (checkBoard()) {
     // Player wins!
@@ -221,7 +292,7 @@ function keyMove(direction) {
 // slide the tiles so that the new empty tile's spot is at the clicked spot
 function clickMove(clicked_x, clicked_y) {
   if (!playing) return;
-  const empty_index = tiles.indexOf(empty_tile);
+  const empty_index = tile_values.indexOf(empty_tile);
   console.assert(empty_index !== -1);
 
   const empty_x = empty_index % size;
@@ -234,7 +305,7 @@ function clickMove(clicked_x, clicked_y) {
     let y = empty_y;
     let increment = clicked_y > empty_y ? 1 : -1;
     while (y !== clicked_y) {
-      swapByPosition(tiles, empty_x, y, empty_x, y + increment);
+      swapByPosition(tile_values, empty_x, y, empty_x, y + increment);
       y += increment;
     }
   } else if (clicked_y === empty_y) {
@@ -242,11 +313,12 @@ function clickMove(clicked_x, clicked_y) {
     let x = empty_x;
     let increment = clicked_x > empty_x ? 1 : -1;
     while (x !== clicked_x) {
-      swapByPosition(tiles, x, empty_y, x + increment, empty_y);
+      swapByPosition(tile_values, x, empty_y, x + increment, empty_y);
       x += increment;
     }
   } else return;
 
+  // Draw to update board from updated tile_values
   draw();
 
   if (checkBoard()) {
@@ -288,7 +360,7 @@ function formatMinSecTime(time) {
 // Re-create the grid
 function init(init_size = DEFAULT_SIZE) {
   size = init_size;
-  empty_tile = size * size - 1;
+  empty_tile = size * size;
   playing = false;
   updateMarathonBtnStyle();
   timer_element.innerHTML = Number(0).toFixed(TIMER_PRECISION);
@@ -350,9 +422,16 @@ function win() {
   }
 }
 
+// new_size is the number of cells in each row
 function setGridSize(new_size) {
   // Resize all cells
   document.querySelector(":root").style.setProperty("--grid_size", new_size);
+}
+
+function setCellWidth(new_width) {
+  document
+    .querySelector(":root")
+    .style.setProperty("--cell_width", new_width + "px");
 }
 
 function setInfoText(text) {
@@ -367,15 +446,28 @@ function setBackgroundColor(color) {
   body.classList.remove("flash-green", "flash-green1");
 }
 
+function updateStartBtnStyle() {
+  const startBtn = document.getElementById("start-btn");
+
+  // Show keyboard keys to activate buttons if not on mobile
+  const showKeyHints = grid_width === GRID_WIDTH_LG;
+
+  startBtn.innerText = "Start" + (showKeyHints ? " (spacebar)" : "");
+}
+
 function updateMarathonBtnStyle() {
   const btn = document.getElementById("marathon-btn");
   btn.className = `btn marathon-btn ${marathon_enabled ? "selected" : ""} ${
     playing ? "btn-disabled" : ""
   }`;
 
-  btn.innerHTML = marathon_enabled
-    ? "Disable Marathon (m)"
-    : "Enable Marathon (m)";
+  // Show keyboard keys to activate buttons if not on mobile
+  const showKeyHints = grid_width === GRID_WIDTH_LG;
+
+  btn.innerText =
+    (marathon_enabled ? "Disable" : "Enable") +
+    " Marathon" +
+    (showKeyHints ? " (m)" : "");
 }
 
 async function flashGreen() {
@@ -405,7 +497,7 @@ function onKeyDown(e) {
   else if (e.key === "ArrowRight") keyMove(DIRECTIONS.RIGHT);
   else if (e.key === "ArrowUp") keyMove(DIRECTIONS.UP);
   else if (e.key === "ArrowDown") keyMove(DIRECTIONS.DOWN);
-  else if (!isNaN(keynum) && 0 <= keynum < 10) {
+  else if (!isNaN(keynum) && 1 <= keynum <= 9) {
     onSizeSelected(keynum);
   }
 }
@@ -433,14 +525,20 @@ function onSizeSelected(tile) {
   }
 }
 
+function setButtonText() {
+  updateStartBtnStyle();
+  updateMarathonBtnStyle();
+}
+
 function onLoad() {
   document.getElementById("start-btn").onclick = start;
   document.getElementById("marathon-btn").onclick = toggleMarathon;
+  setButtonText();
 
   // Create size select button elements
   const size_select = document.getElementById("size-select");
-  // Hardcoded 10 for allowing sizes 0-9
-  for (let i = 0; i < 10; i++) {
+  // Hardcoded 10 for allowing sizes 1-9
+  for (let i = 1; i < 10; i++) {
     let btn = document.createElement("div");
     btn.className = "btn size-select-btn" + (i === size ? " selected" : "");
     btn.innerHTML = i;
@@ -453,6 +551,27 @@ function onLoad() {
   // Initialize board
   init();
 }
+
+function onScreenSizeChange(e) {
+  if (e.matches) {
+    // Device is small
+    grid_width = GRID_WIDTH_SM;
+  } else {
+    // Device is large
+    grid_width = GRID_WIDTH_LG;
+  }
+
+  setCellWidth(calculateCellWidth());
+  setButtonText();
+  draw();
+}
+
+// Create and register event for screen resizing
+const resizeQuery = matchMedia("(max-width: 600px)");
+resizeQuery.addEventListener("change", onScreenSizeChange);
+
+// Initial check for screen size
+onScreenSizeChange(resizeQuery);
 
 document.onkeydown = onKeyDown;
 window.onload = onLoad;
