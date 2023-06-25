@@ -2,7 +2,7 @@
 permalink: /index.html
 ---
 
-# [Link to play online - hosted on my github page](https://adambookout.github.io/fifteen/)
+# [Link to play online - hosted on my github page](https://abookout.github.io/fifteen/)
 
 # fifteen
 
