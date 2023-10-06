@@ -5,6 +5,7 @@ const MARATHON_GAMES = 10; // how many games in a marathon
 
 // Grid widths for small screens (mobile) and large screens (non-mobile)
 const GRID_WIDTH_SM = 300;
+const GRID_WIDTH_MD = 350;
 const GRID_WIDTH_LG = 500;
 
 const DIRECTIONS = Object.freeze({
@@ -552,13 +553,13 @@ function onLoad() {
   init();
 }
 
-function onScreenSizeChange(e) {
-  if (e.matches) {
-    // Device is small
-    grid_width = GRID_WIDTH_SM;
-  } else {
-    // Device is large
+function onScreenSizeChange() {
+  if (lgQuery.matches) {
     grid_width = GRID_WIDTH_LG;
+  } else if (medQuery.matches) {
+    grid_width = GRID_WIDTH_MD;
+  } else {
+    grid_width = GRID_WIDTH_SM;
   }
 
   setCellWidth(calculateCellWidth());
@@ -566,12 +567,15 @@ function onScreenSizeChange(e) {
   draw();
 }
 
-// Create and register event for screen resizing
-const resizeQuery = matchMedia("(max-width: 600px)");
-resizeQuery.addEventListener("change", onScreenSizeChange);
+// Create and register events for screen resizing
+const medQuery = matchMedia("(min-width: 600px)");
+const lgQuery = matchMedia("(min-width: 1600px)");
+
+medQuery.addEventListener("change", onScreenSizeChange);
+lgQuery.addEventListener("change", onScreenSizeChange);
 
 // Initial check for screen size
-onScreenSizeChange(resizeQuery);
+onScreenSizeChange();
 
 document.onkeydown = onKeyDown;
 window.onload = onLoad;
