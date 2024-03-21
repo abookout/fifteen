@@ -144,6 +144,11 @@ body {
   text-align: center;
   /* bring above the gradient around the grid */
   z-index: 10;
+  margin-bottom: 0;
+}
+
+.move-counter {
+  margin-top: 0;
 }
 
 .size-select {
@@ -191,7 +196,7 @@ body {
 .start-btn,
 .marathon-btn {
   width: 14rem;
-  height: 4rem;
+  height: 3rem;
   text-align: center;
   font-size: 2vmin;
 }

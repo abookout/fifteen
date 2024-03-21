@@ -50,6 +50,14 @@ let marathon_counter = MARATHON_GAMES;
 // Store size select buttons to update style when one is selected
 let size_select_btns = [];
 
+// Timer stuff
+const timer_element = document.getElementById("timer");
+let initial_time, current_time, timer_interval;
+
+// Move counter
+const move_counter_element = document.getElementById("move-counter");
+let current_moves = 0;
+
 // Creates an array of sorted tile values corresponding to the current grid size
 function createSolvedValuesArray() {
   return Array.from({ length: size * size }).map((_, i) => i + 1);
@@ -120,6 +128,9 @@ function moveTile(tile_index, new_index, new_x, new_y) {
   // Update transform of tile
   const cell_width = calculateCellWidth();
   setTileTransform(tile, cell_width, new_x, new_y);
+
+  current_moves += 1;
+  move_counter_element.innerHTML = current_moves;
 }
 
 function moveTileByIndex(tile_index, new_index) {
@@ -330,9 +341,6 @@ function clickMove(clicked_x, clicked_y) {
 
 // Timer functions
 
-const timer_element = document.getElementById("timer");
-let initial_time, current_time, timer_interval;
-
 function startTimer() {
   if (timer_interval) clearInterval(timer_interval);
   initial_time = Date.now();
@@ -356,6 +364,11 @@ function formatMinSecTime(time) {
   return `${Math.floor(time / 60)}m ${(time % 60).toFixed(TIMER_PRECISION)}s`;
 }
 
+function resetMoves() {
+  current_moves = 0;
+  move_counter_element.innerHTML = current_moves;
+}
+
 // Game flow functions
 
 // Re-create the grid
@@ -365,6 +378,8 @@ function init(init_size = DEFAULT_SIZE) {
   playing = false;
   updateMarathonBtnStyle();
   timer_element.innerHTML = Number(0).toFixed(TIMER_PRECISION);
+
+  resetMoves();
 
   setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
   destroyGrid();
@@ -376,6 +391,7 @@ function init(init_size = DEFAULT_SIZE) {
 // Begin the game; clear info text, shuffle the board, and start the timer.
 function start() {
   marathon_counter = MARATHON_GAMES;
+  resetMoves();
   setBackgroundColor(BACKGROUND_COLORS.DEFAULT);
   if (marathon_enabled) {
     setInfoText(`Games remaining: ${marathon_counter}`);
